@@ -13,11 +13,13 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir influxdb
 
-RUN groupadd -r btmon && useradd --no-log-init -r -g btmon btmon
-USER btmon
-
 WORKDIR /opt/btmon
 ADD . /opt/btmon
+
+RUN chmod 755 ./btmon.py
+
+RUN groupadd -r btmon && useradd --no-log-init -r -g btmon btmon
+USER btmon
 
 VOLUME /btmon.cfg
 
