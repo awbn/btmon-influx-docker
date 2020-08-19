@@ -1,14 +1,19 @@
 #!/bin/bash
+set -eu
 
-TAGBASE="rwojo/btmon-influx"
+NAME="awbn/btmon-docker"
 TAG=${1:-latest}
 DOCKERFILE=Dockerfile
 
-SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+WORKDIR="$( cd "$( dirname "$0" )" && pwd )"
 
-if [ -f "${SCRIPT_DIR}/Dockerfile.${TAG}" ]; then
+if [ -f "${WORKDIR}/Dockerfile.${TAG}" ]; then
     DOCKERFILE="Dockerfile.${TAG}"
 fi
 
-echo "Building '${TAGBASE}:${TAG}' from ${DOCKERFILE}..."
-docker build -f "${SCRIPT_DIR}/${DOCKERFILE}" --tag="${TAGBASE}:${TAG}" "${SCRIPT_DIR}"
+echo "Building '${NAME}:${TAG}' from ${DOCKERFILE}..."
+docker build \
+ -f "${WORKDIR}/${DOCKERFILE}" \
+ --tag="${NAME}:${TAG}" "${WORKDIR}" \
+ --build-arg GIT_COMMIT=$(git log -1 --format=%h) \
+ --build-arg GIT_URL=$(git config --get remote.origin.url)

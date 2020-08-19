@@ -1,13 +1,17 @@
 FROM alpine:3
 
-LABEL maintainer="Robert Wojciechowski <robert@wojo.net>"
+ARG GIT_URL=unspecified
+ARG GIT_COMMIT=unspecified
 
-ENV PYTHONUNBUFFERED=1
+LABEL maintainer="awbn <docker@awbn.io>" \
+    org.opencontainers.image.source=$GIT_URL \
+    org.opencontainers.image.revision=$GIT_COMMIT
+
+ENV PYTHONUNBUFFERED=1 \
+    DEBUG=""
 
 RUN set -ex \
     && apk add --update --no-cache \
-    curl \
-    wget \
     python2
 
 RUN python -m ensurepip
@@ -16,16 +20,16 @@ RUN set -ex && \
     pip install --upgrade --no-cache-dir pip && \
     pip install --no-cache-dir influxdb
 
-WORKDIR /opt/btmon
-ADD . /opt/btmon
-RUN chmod 755 ./btmon.py
+WORKDIR /btmon
+COPY . /btmon
+RUN chmod 755 ./btmon.py ./docker-entrypoint.sh
 
 RUN adduser -D btmon
 USER btmon
 
-VOLUME /btmon.cfg
+VOLUME /btmon/btmon.cfg
 
-EXPOSE 5010
+EXPOSE 5000
 
-ENTRYPOINT ["./btmon.py"]
-CMD ["-c", "/btmon.cfg"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["-c", "/btmon/btmon.cfg"]

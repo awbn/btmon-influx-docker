@@ -1,14 +1,18 @@
 FROM debian:buster-slim
 
-LABEL maintainer="Robert Wojciechowski <robert@wojo.net>"
+ARG GIT_URL=unspecified
+ARG GIT_COMMIT=unspecified
+
+LABEL maintainer="awbn <docker@awbn.io>" \
+    org.opencontainers.image.source=$GIT_URL \
+    org.opencontainers.image.revision=$GIT_COMMIT
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    DEBUG=""
 
 RUN set -ex \
     && apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    wget \
     python \
     python-pip \
     && rm -rf /var/lib/apt/lists/*
@@ -17,18 +21,18 @@ RUN set -ex && \
     pip install --upgrade --no-cache-dir pip && \
     pip install --no-cache-dir influxdb
 
-WORKDIR /opt/btmon
-ADD . /opt/btmon
-RUN chmod 755 ./btmon.py
+WORKDIR /btmon
+COPY . /btmon
+RUN chmod 755 ./btmon.py ./docker-entrypoint.sh
 
 RUN set -ex \
     && groupadd -r btmon \
     && useradd --no-log-init -r -g btmon btmon
 USER btmon
 
-VOLUME /btmon.cfg
+VOLUME /btmon/btmon.cfg
 
-EXPOSE 5010
+EXPOSE 5000
 
-ENTRYPOINT ["./btmon.py"]
-CMD ["-c", "/btmon.cfg"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["-c", "/btmon/btmon.cfg"]
