@@ -1,19 +1,23 @@
-FROM python:2.7-alpine
+FROM alpine:3
 
 LABEL maintainer="Robert Wojciechowski <robert@wojo.net>"
 
 ENV PYTHONUNBUFFERED=1
 
-RUN apk add --update --no-cache --virtual \
+RUN set -ex \
+    && apk add --update --no-cache \
     curl \
-    wget
+    wget \
+    python2
 
-RUN pip install --upgrade pip && \
+RUN python -m ensurepip
+
+RUN set -ex && \
+    pip install --upgrade --no-cache-dir pip && \
     pip install --no-cache-dir influxdb
 
 WORKDIR /opt/btmon
 ADD . /opt/btmon
-
 RUN chmod 755 ./btmon.py
 
 RUN adduser -D btmon

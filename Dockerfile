@@ -1,24 +1,29 @@
-FROM python:2.7-slim-buster
+FROM debian:buster-slim
 
 LABEL maintainer="Robert Wojciechowski <robert@wojo.net>"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
 
-RUN apt-get update && apt-get install -qy --no-install-recommends \
+RUN set -ex \
+    && apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    wget
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    wget \
+    python \
+    python-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip && \
+RUN set -ex && \
+    pip install --upgrade --no-cache-dir pip && \
     pip install --no-cache-dir influxdb
 
 WORKDIR /opt/btmon
 ADD . /opt/btmon
-
 RUN chmod 755 ./btmon.py
 
-RUN groupadd -r btmon && useradd --no-log-init -r -g btmon btmon
+RUN set -ex \
+    && groupadd -r btmon \
+    && useradd --no-log-init -r -g btmon btmon
 USER btmon
 
 VOLUME /btmon.cfg
